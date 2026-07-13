@@ -52,7 +52,10 @@ describe('validate middleware', () => {
         expect.objectContaining({
           message: 'Validation error',
           errors: expect.arrayContaining([
-            expect.objectContaining({ field: 'name', message: expect.any(String) }),
+            expect.objectContaining({
+              field: 'name',
+              message: expect.any(String),
+            }),
           ]),
         }),
       )
