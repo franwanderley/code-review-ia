@@ -59,6 +59,54 @@ describe('connectDatabase', () => {
       expect.any(Function),
     )
   })
+
+  describe('callbacks dos listeners de conexão', () => {
+    beforeEach(async () => {
+      process.env.MONGO_URI = 'mongodb://localhost:27017/test'
+      vi.spyOn(console, 'log').mockImplementation(() => undefined)
+      vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      await connectDatabase()
+    })
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+      delete process.env.MONGO_URI
+    })
+
+    it('loga mensagem de sucesso ao conectar', () => {
+      const connectedCallback = mockConnectionOn.mock.calls.find(
+        ([event]) => event === 'connected',
+      )?.[1] as () => void
+
+      connectedCallback()
+
+      expect(console.log).toHaveBeenCalledWith('MongoDB connected successfully')
+    })
+
+    it('loga erro ao falhar na conexão', () => {
+      const errorCallback = mockConnectionOn.mock.calls.find(
+        ([event]) => event === 'error',
+      )?.[1] as (error: Error) => void
+
+      const connectionError = new Error('connection refused')
+      errorCallback(connectionError)
+
+      expect(console.error).toHaveBeenCalledWith(
+        'MongoDB connection error:',
+        connectionError,
+      )
+    })
+
+    it('loga mensagem ao desconectar', () => {
+      const disconnectedCallback = mockConnectionOn.mock.calls.find(
+        ([event]) => event === 'disconnected',
+      )?.[1] as () => void
+
+      disconnectedCallback()
+
+      expect(console.log).toHaveBeenCalledWith('MongoDB disconnected')
+    })
+  })
 })
 
 describe('disconnectDatabase', () => {
