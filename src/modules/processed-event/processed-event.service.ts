@@ -1,5 +1,7 @@
 import { ProcessedEventModel } from './processed-event.model'
 
+const ERROR_COINSTRANT_DUPLICATE_KEY = 11000
+
 export class ProcessedEventService {
   /**
    * Verifica se um evento já foi processado. Se não foi, registra e retorna false.
@@ -14,8 +16,9 @@ export class ProcessedEventService {
       await ProcessedEventModel.create({ eventId })
       return false
     } catch (error: unknown) {
-      // 11000 is the MongoDB error code for duplicate key (unique constraint violation)
-      if ((error as { code?: number })?.code === 11000) {
+      if (
+        (error as { code?: number })?.code === ERROR_COINSTRANT_DUPLICATE_KEY
+      ) {
         return true
       }
       throw error

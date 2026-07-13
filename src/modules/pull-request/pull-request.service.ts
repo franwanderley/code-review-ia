@@ -8,13 +8,8 @@ import { PullRequestReviewModel } from './pull-request.model'
 export class PullRequestService {
   private processedEventService = new ProcessedEventService()
   private userService = new UserService()
-  // Instantiate clients inside the service or inject them (for MVP we instantiate directly)
   private githubClient = new GithubClient()
   private aiClient = new AIClient()
-
-  /**
-   * Main entrypoint for processing a GitHub webhook payload for a Pull Request.
-   */
   async processPullRequestWebhook(
     githubDeliveryId: string,
     repoOwner: string,
@@ -22,7 +17,6 @@ export class PullRequestService {
     pullRequestNumber: number,
     senderLogin: string,
   ): Promise<void> {
-    // 1. Idempotency Check
     const isProcessed =
       await this.processedEventService.isEventProcessed(githubDeliveryId)
     if (isProcessed) {
@@ -32,14 +26,10 @@ export class PullRequestService {
       return
     }
 
-    // 2. Upsert User (using repoOwner as fallback or senderLogin)
-    // In a real scenario, we'd map this properly. Using senderLogin as githubId.
     const user = await this.userService.upsertUserByGithubId(
       senderLogin,
       `${senderLogin}@users.noreply.github.com`,
     )
-
-    // 3. Create the Review Record (PENDENTE)
     const review = await PullRequestReviewModel.create({
       userId: user._id,
       githubDeliveryId,
