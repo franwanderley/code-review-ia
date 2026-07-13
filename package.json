@@ -1,0 +1,39 @@
+{
+  "name": "code-review-ia",
+  "version": "1.0.0",
+  "description": "Backend para revisao de codigo automatizada via IA utilizando a API do Nara Router",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^22.0.1",
+    "@octokit/webhooks": "^14.2.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.7.4",
+    "p-limit": "^7.3.0",
+    "pino": "^10.3.1",
+    "pino-pretty": "^13.1.3",
+    "stripe": "^22.3.1"
+  },
+  "devDependencies": {
+    "@rocketseat/eslint-config": "^2.2.2",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^8.57.1",
+    "tsx": "^4.23.1",
+    "typescript": "^5.5.4",
+    "vitest": "^4.1.10"
+  }
+}

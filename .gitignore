@@ -1,0 +1,8 @@
+.env
+node_modules
+dist
+coverage
+.idea
+.vscode
+agents.md
+cd-pipeline-setup.md
