@@ -17,4 +17,4 @@ export const GithubWebhookPayloadSchema = z
       login: z.string(),
     }),
   })
-  .passthrough() // Allow other github payload fields to exist
+  .passthrough()

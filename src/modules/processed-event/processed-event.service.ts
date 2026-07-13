@@ -15,7 +15,7 @@ export class ProcessedEventService {
       return false
     } catch (error: unknown) {
       // 11000 is the MongoDB error code for duplicate key (unique constraint violation)
-      if (error.code === 11000) {
+      if ((error as { code?: number })?.code === 11000) {
         return true
       }
       throw error

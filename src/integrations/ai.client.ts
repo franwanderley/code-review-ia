@@ -109,8 +109,11 @@ If there are no issues found, return an empty array [].`
       return parsed
     } catch (error: unknown) {
       if (error instanceof AppError) throw error
+
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
       throw new AppError(
-        `Failed to communicate with AI API: ${error.message || 'Unknown error'}`,
+        `Failed to communicate with AI API: ${errorMessage}`,
         502,
       )
     }

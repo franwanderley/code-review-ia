@@ -36,13 +36,11 @@ export class GithubClient {
         },
       })
 
-      // The response.data for diff mediaType is a string
       return response.data as unknown as string
     } catch (error: unknown) {
-      throw new AppError(
-        `Failed to fetch PR diff: ${error.message || 'Unknown error'}`,
-        502,
-      )
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error'
+      throw new AppError(`Failed to fetch PR diff: ${errorMessage}`, 502)
     }
   }
 }
