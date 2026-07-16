@@ -21,16 +21,13 @@ export class GithubController {
       return
     }
 
-    // req.body is already validated by our middleware against GithubWebhookPayloadSchema
     const payload = req.body as z.infer<typeof GithubWebhookPayloadSchema>
 
-    // We only care about opened or synchronize (new commits) events
     if (payload.action !== 'opened' && payload.action !== 'synchronize') {
       res.status(200).json({ message: `Action ${payload.action} ignored` })
       return
     }
 
-    // Start background processing so we can respond immediately (webhooks require fast responses)
     this.pullRequestService
       .processPullRequestWebhook(
         deliveryId,
@@ -39,7 +36,7 @@ export class GithubController {
         payload.pull_request.number,
         payload.sender.login,
       )
-      .catch((error) => {
+      .catch(error => {
         console.error(
           '[GithubController] Unhandled error in background processing:',
           error,
