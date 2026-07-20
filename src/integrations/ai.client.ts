@@ -9,7 +9,9 @@ export interface AISuggestion {
 }
 
 export class AIClient {
-  private model = 'gemini-1.5-flash'
+  private get model(): string {
+    return process.env.NARA_ROUTER_MODEL || 'agnes-2.0-flash'
+  }
 
   private get apiKey(): string {
     const key = process.env.NARA_ROUTER_API_KEY
@@ -64,8 +66,7 @@ If there are no issues found, return an empty array [].`
             { role: 'system', content: systemPrompt },
             { role: 'user', content: diff },
           ],
-          temperature: 0.2, // Low temperature for more deterministic reviews
-          // Enforce JSON output on models that support it
+          temperature: 0.2,
           response_format: { type: 'json_object' },
         }),
       })
@@ -84,7 +85,6 @@ If there are no issues found, return an empty array [].`
       const data = (await response.json()) as NaraResponse
       const content = data.choices[0]?.message?.content || '[]'
 
-      // Clean up potential markdown wrapping if the model ignored instructions
       const cleanContent = content
         .replace(/^```json/m, '')
         .replace(/```$/m, '')
@@ -93,9 +93,7 @@ If there are no issues found, return an empty array [].`
       let parsed: AISuggestion[]
       try {
         parsed = JSON.parse(cleanContent)
-        // If response_format: json_object wraps it in a parent key (some APIs do this)
         if (!Array.isArray(parsed)) {
-          // Attempt to extract the array if it's wrapped in an object like { "suggestions": [] }
           const possibleArray = Object.values(parsed).find(Array.isArray)
           parsed = (possibleArray as AISuggestion[]) || []
         }

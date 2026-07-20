@@ -25,7 +25,7 @@ export function validate(schema: ZodType, target: ValidationTarget = 'body') {
 }
 
 function formatZodErrors(error: ZodError) {
-  return error.issues.map((issue) => ({
+  return error.issues.map(issue => ({
     field: issue.path.join('.'),
     message: issue.message,
   }))

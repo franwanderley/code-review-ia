@@ -17,6 +17,10 @@ export class PullRequestService {
     pullRequestNumber: number,
     senderLogin: string,
   ): Promise<void> {
+    console.log(
+      `[PR Service] Starting webhook processing for delivery: ${githubDeliveryId}`,
+    )
+
     const isProcessed =
       await this.processedEventService.isEventProcessed(githubDeliveryId)
     if (isProcessed) {
@@ -26,9 +30,14 @@ export class PullRequestService {
       return
     }
 
+    console.log(`[PR Service] Upserting user: ${senderLogin}`)
     const user = await this.userService.upsertUserByGithubId(
       senderLogin,
       `${senderLogin}@users.noreply.github.com`,
+    )
+
+    console.log(
+      `[PR Service] Creating PullRequestReview record for PR #${pullRequestNumber}`,
     )
     const review = await PullRequestReviewModel.create({
       userId: user._id,
@@ -40,11 +49,15 @@ export class PullRequestService {
     })
 
     try {
-      // 4. Update status to PROCESSANDO
+      console.log(
+        `[PR Service] Updating review status to PROCESSANDO for PR #${pullRequestNumber}`,
+      )
       review.status = 'PROCESSANDO'
       await review.save()
 
-      // 5. Fetch Diff from GitHub
+      console.log(
+        `[PR Service] Fetching pull request diff from GitHub for PR #${pullRequestNumber}`,
+      )
       const diff = await this.githubClient.getPullRequestDiff(
         repoOwner,
         repoName,
@@ -52,17 +65,23 @@ export class PullRequestService {
       )
 
       if (!diff || diff.trim() === '') {
+        console.log(
+          `[PR Service] Empty diff for PR #${pullRequestNumber}. Finalizing.`,
+        )
         review.status = 'FINALIZADO'
         review.summary = 'No code changes detected in this pull request.'
         await review.save()
         return
       }
 
-      // 6. Send Diff to AI for Analysis
-      // MVP: We send the entire diff. A more robust solution truncates it here.
+      console.log(
+        `[PR Service] Sending diff (${diff.length} chars) to AI for analysis...`,
+      )
       const suggestions = await this.aiClient.analyzePullRequest(diff)
 
-      // 7. Save the suggestions and mark as FINALIZADO
+      console.log(
+        `[PR Service] Saving AI suggestions and finalizing PR #${pullRequestNumber}`,
+      )
       review.status = 'FINALIZADO'
       review.suggestions = suggestions
       review.summary = `Analyzed successfully. Found ${suggestions.length} suggestion(s).`
@@ -71,15 +90,12 @@ export class PullRequestService {
       console.log(
         `[PR Service] Successfully processed PR #${pullRequestNumber} for ${repoOwner}/${repoName}`,
       )
-
-      // Note: We DO NOT post comments back to GitHub per the MVP requirements.
     } catch (error: unknown) {
       console.error(
         `[PR Service] Failed to process PR #${pullRequestNumber}:`,
         error,
       )
 
-      // Update status to FALHOU
       review.status = 'FALHOU'
       review.errorMessage =
         error instanceof AppError ? error.message : 'Unknown internal error'
